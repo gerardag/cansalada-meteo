@@ -129,8 +129,8 @@ nano .env
 
 Contingut del fitxer `.env`:
 ```env
-SUPABASE_URL=https://kyfvyncdpnfzymmcxdbp.supabase.co
-SUPABASE_ANON_KEY=la_teva_clau_anonima_de_supabase
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
 ```
 
 ```bash
