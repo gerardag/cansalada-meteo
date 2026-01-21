@@ -6,6 +6,15 @@ const { createClient } = require("@supabase/supabase-js");
 
 const fastify = Fastify({ logger: true });
 
+// Habilitar CORS para el frontend
+fastify.register(require('@fastify/cors'), {
+	origin: [
+		'http://localhost:4321', // Desarrollo local
+		'https://meteo.cnsld.cc',  // Producción
+	],
+	credentials: true
+});
+
 const supabase = createClient(
 		process.env.SUPABASE_URL,
 		process.env.SUPABASE_ANON_KEY
