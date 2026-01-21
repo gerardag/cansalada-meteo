@@ -1,167 +1,168 @@
-# Cansalada Meteo 🌤️
+# Can Salada Meteo 🌤️
 
-Sistema de monitorización meteorológica con estación GW2000, backend Node.js y frontend Astro.
+Sistema de monitorització meteorològica amb estació GW2000, backend Node.js i frontend Astro.
 
 ## 📋 Arquitectura
 
 ```
-Estación GW2000 (192.168.1.57)
-        ↓
-   collector.js (Raspberry Pi) ───→ Supabase
-                                        ↓
-                                  server.js (Debian)
-                                        ↓
-                            Frontend Astro (Netlify)
+Estació GW2000 (local)
+    ↓
+Collector.js (Raspberry Pi)
+    ↓
+BBDD (Supabase)
+    ↓
+server.js (Nubulus)
+    ↓
+Frontend  (Vercel)
 ```
 
-## 🗂️ Estructura del proyecto
+## 🗂️ Estructura del projecte
 
-- **collector.js**: Recoge datos de la estación meteorológica local y los almacena en Supabase
-- **server.js**: API REST que expone los datos almacenados
-- **schema.sql**: Esquema de la base de datos
+- **collector.js**: Recull dades de l'estació meteorològica local i les desa a Supabase
+- **server.js**: API REST que exposa les dades desade
 
-## 🚀 Despliegue
+## 🚀 Desplegament
 
 ### 1️⃣ Collector (Raspberry Pi)
 
-El collector debe ejecutarse en una **Raspberry Pi** dentro de la **misma red local** que la estación GW2000.
+El collector s'ha d'executar en una **Raspberry Pi** dins de la **mateixa xarxa local** que l'estació GW2000.
 
-#### Requisitos
+#### Requisits
 
-- Raspberry Pi (cualquier modelo con conectividad de red)
+- Raspberry Pi (qualsevol model amb connectivitat de xarxa)
 - Raspbian OS / Raspberry Pi OS
 - Node.js 18+
 
-#### Instalación en Raspberry Pi
+#### Instal·lació a la Raspberry Pi
 
 ```bash
-# 1. Conectarse a la Raspberry Pi
-ssh pi@raspberry-pi-ip
+# 1. Connectar-se a la Raspberry Pi
+ssh pi@ip-raspberry-pi
 
-# 2. Instalar Node.js 18.x (o superior)
+# 2. Instal·lar Node.js 18.x (o superior)
 curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
 sudo apt install -y nodejs
 
-# 3. Verificar instalación
+# 3. Verificar instal·lació
 node -v
 npm -v
 
-# 4. Crear directorio del proyecto
+# 4. Crear directori del projecte
 mkdir -p ~/cansalada-meteo
 cd ~/cansalada-meteo
 
-# 5. Copiar archivos del proyecto
-# Desde tu ordenador local:
-# scp collector.js package.json .env pi@raspberry-pi-ip:~/cansalada-meteo/
+# 5. Copiar fitxers del projecte
+# Des del teu ordinador local:
+# scp collector.js package.json .env pi@ip-raspberry-pi:~/cansalada-meteo/
 
-# 6. Instalar dependencias
+# 6. Instal·lar dependències
 npm install
 
-# 7. Configurar variables de entorno
+# 7. Configurar variables d'entorn
 nano .env
-# Añadir SUPABASE_URL y SUPABASE_ANON_KEY
+# Afegir SUPABASE_URL i SUPABASE_ANON_KEY
 
-# 8. Instalar PM2 globalmente
+# 8. Instal·lar PM2 globalment
 sudo npm install -g pm2
 
 # 9. Iniciar collector
 pm2 start collector.js --name "weather-collector"
 
-# 10. Configurar inicio automático al reiniciar la Raspberry Pi
+# 10. Configurar inici automàtic al reiniciar la Raspberry Pi
 pm2 startup
-# Ejecutar el comando que te devuelve PM2
+# Executar la comanda que et retorna PM2
 pm2 save
 
-# 11. Ver logs
+# 11. Veure logs
 pm2 logs weather-collector
 ```
 
 #### Verificar que funciona
 
 ```bash
-# Ver estado del proceso
+# Veure estat del procés
 pm2 status
 
-# Ver logs en tiempo real
+# Veure logs en temps real
 pm2 logs weather-collector --lines 50
 
-# Verificar conectividad con la estación
+# Verificar connectivitat amb l'estació
 ping 192.168.1.57
 curl http://192.168.1.57/get_livedata_info
 ```
 
 ### 2️⃣ Server (Servidor Debian)
 
-El servidor API se despliega en un servidor Debian con acceso público.
+El servidor API es desplega en un servidor Debian amb accés públic.
 
-#### Requisitos
+#### Requisits
 
 - Node.js 18+
 - PM2
-- Nginx (opcional, recomendado)
+- Nginx (opcional, recomanat)
 
-#### Instalación en Debian
+#### Instal·lació a Debian
 
 ```bash
-# 1. Instalar Node.js 20.x
+# 1. Instal·lar Node.js 20.x
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 
-# 2. Instalar PM2
+# 2. Instal·lar PM2
 sudo npm install -g pm2
 
-# 3. Crear directorio del proyecto
+# 3. Crear directori del projecte
 sudo mkdir -p /var/www/cansalada-meteo
 cd /var/www/cansalada-meteo
 
-# 4. Clonar o copiar archivos del proyecto
-# git clone tu-repo.git .
-# O usando scp:
-# scp -r server.js package.json .env usuario@servidor:/var/www/cansalada-meteo/
+# 4. Clonar o copiar fitxers del projecte
+# git clone el-teu-repo.git .
+# O amb scp:
+# scp -r server.js package.json .env usuari@servidor:/var/www/cansalada-meteo/
 
-# 5. Instalar dependencias
+# 5. Instal·lar dependències
 npm install
 
-# 6. Configurar variables de entorno
+# 6. Configurar variables d'entorn
 nano .env
 ```
 
-Contenido del archivo `.env`:
+Contingut del fitxer `.env`:
 ```env
 SUPABASE_URL=https://kyfvyncdpnfzymmcxdbp.supabase.co
-SUPABASE_ANON_KEY=tu_clave_anonima_de_supabase
+SUPABASE_ANON_KEY=la_teva_clau_anonima_de_supabase
 ```
 
 ```bash
-# 7. Iniciar servidor con PM2
+# 7. Iniciar servidor amb PM2
 pm2 start server.js --name "weather-api"
 
-# 8. Configurar inicio automático
+# 8. Configurar inici automàtic
 pm2 startup systemd
 pm2 save
 
-# 9. Ver estado y logs
+# 9. Veure estat i logs
 pm2 status
 pm2 logs weather-api
 ```
 
-#### Configurar Nginx (Recomendado)
+#### Configurar Nginx (Recomanat)
 
 ```bash
-# Instalar Nginx
+# Instal·lar Nginx
 sudo apt install nginx
 
-# Crear configuración
+# Crear configuració
 sudo nano /etc/nginx/sites-available/weather-api
 ```
 
-Contenido del archivo:
+Contingut del fitxer:
 ```nginx
 server {
     listen 80;
     server_name meteo-api.cnsld.cc;
 
-    # Logs personalizados para el API
+    # Logs personalitzats per a l'API
     access_log /var/log/nginx/weather-api-access.log;
     error_log /var/log/nginx/weather-api-error.log;
 
@@ -175,14 +176,14 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
 
-        # Log específico para proxying
+        # Log específic per a proxying
         proxy_set_header X-Request-ID $request_id;
     }
 }
 ```
 
 ```bash
-# Activar configuración
+# Activar configuració
 sudo ln -s /etc/nginx/sites-available/weather-api /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl restart nginx
@@ -190,32 +191,32 @@ sudo systemctl restart nginx
 
 ### 3️⃣ Frontend Astro (Netlify)
 
-#### Configurar en Netlify
+#### Configurar a Netlify
 
-1. Conecta tu repositorio del frontend
+1. Connecta el teu repositori del frontend
 2. Build settings:
    - **Build command**: `npm run build`
    - **Publish directory**: `dist`
-3. En **Domain settings** → Añadir custom domain: `meteo.cnsld.cc`
+3. A **Domain settings** → Afegir custom domain: `meteo.cnsld.cc`
 
 ### 4️⃣ Configurar Cloudflare
 
 #### DNS Records
 
-Añade estos registros en Cloudflare:
+Afegeix aquests registres a Cloudflare:
 
 ```
-Tipo   Nombre  Contenido                      Proxy
-CNAME  meteo   cansalada-meteo.netlify.app    ✅ Proxied
-A      api     85.117.241.102                 ❌ Proxied
+Tipus   Nom     Contingut                      Proxy
+CNAME   meteo   cansalada-meteo.netlify.app    ✅ Proxied
+A       api     85.117.241.102                 ❌ Proxied
 ```
 
-## 🔌 Endpoints de la API
+## 🔌 Endpoints de l'API
 
 ### `GET /api/current`
-Obtiene el último registro meteorológico.
+Obté l'últim registre meteorològic.
 
-**Respuesta:**
+**Resposta:**
 ```json
 {
   "data": {
@@ -229,9 +230,9 @@ Obtiene el último registro meteorológico.
 ```
 
 ### `GET /api/daily-stats`
-Estadísticas del día actual (máximos y mínimos).
+Estadístiques del dia actual (màxims i mínims).
 
-**Respuesta:**
+**Resposta:**
 ```json
 {
   "data": {
@@ -245,9 +246,9 @@ Estadísticas del día actual (máximos y mínimos).
 ```
 
 ### `GET /api/history`
-Histórico de las últimas 24 horas.
+Històric de les últimes 24 hores.
 
-**Respuesta:**
+**Resposta:**
 ```json
 {
   "data": [
@@ -262,219 +263,152 @@ Histórico de las últimas 24 horas.
 }
 ```
 
-## 🛠️ Comandos útiles
+## 🛠️ Comandes útils
 
 ### PM2
 
 ```bash
-# Ver estado de todos los procesos
+# Veure estat de tots els processos
 pm2 status
 
-# Ver logs en tiempo real
+# Veure logs en temps real
 pm2 logs weather-api
 pm2 logs weather-collector
 
-# Reiniciar proceso
+# Reiniciar procés
 pm2 restart weather-api
 pm2 restart weather-collector
 
-# Detener proceso
+# Aturar procés
 pm2 stop weather-api
 
 # Monitor de recursos
 pm2 monit
 
-# Eliminar proceso
+# Eliminar procés
 pm2 delete weather-api
 ```
 
 ### Nginx
 
 ```bash
-# Verificar configuración
+# Verificar configuració
 sudo nginx -t
 
 # Reiniciar Nginx
 sudo systemctl restart nginx
 
-# Ver logs del API en tiempo real
+# Veure logs de l'API en temps real
 sudo tail -f /var/log/nginx/weather-api-access.log
 sudo tail -f /var/log/nginx/weather-api-error.log
 
-# Ver logs generales de Nginx
+# Veure logs generals de Nginx
 sudo tail -f /var/log/nginx/access.log
 sudo tail -f /var/log/nginx/error.log
 
-# Ver últimas 100 líneas
+# Veure les últimes 100 línies
 sudo tail -n 100 /var/log/nginx/weather-api-access.log
 
-# Buscar errores específicos
+# Buscar errors específics
 sudo grep "error" /var/log/nginx/weather-api-error.log
 
-# Ver logs con filtro por código de estado (ej: 500, 404)
+# Veure logs filtrats per codi d'estat (ex: 500, 404)
 sudo grep " 500 " /var/log/nginx/weather-api-access.log
 sudo grep " 404 " /var/log/nginx/weather-api-access.log
 
-# Analizar peticiones más frecuentes
+# Analitzar peticions més freqüents
 sudo awk '{print $7}' /var/log/nginx/weather-api-access.log | sort | uniq -c | sort -rn | head -10
 
-# Rotar logs manualmente (si es necesario)
+# Rotar logs manualment (si cal)
 sudo logrotate -f /etc/logrotate.d/nginx
 ```
 
-## 🔐 Variables de entorno
+## 🔐 Variables d'entorn
 
-Crea un archivo `.env` en la raíz del proyecto:
+Crea un fitxer `.env` a l'arrel del projecte:
 
 ```env
-SUPABASE_URL=https://kyfvyncdpnfzymmcxdbp.supabase.co
-SUPABASE_ANON_KEY=tu_clave_anonima_de_supabase
+SUPABASE_URL=
+SUPABASE_ANON_KEY=
 ```
 
-## 📊 Base de datos (Supabase)
+## 📊 Base de dades (Supabase)
 
-La tabla `weather` almacena todos los datos meteorológicos:
+La taula `weather` desa totes les dades meteorològiques:
 
 - `temperature`: Temperatura (°C)
-- `humidity`: Humedad relativa (%)
-- `dew_point`: Punto de rocío (°C)
-- `wind_speed`: Velocidad del viento (km/h)
-- `w� Configuración avanzada de Logs
-
-### Logs de Nginx
-
-Los logs de Nginx se configuran automáticamente con la configuración anterior. Los archivos se encuentran en:
-
-- **Access log**: `/var/log/nginx/weather-api-access.log` - Todas las peticiones HTTP
-- **Error log**: `/var/log/nginx/weather-api-error.log` - Errores de Nginx y proxy
-
-#### Formato de logs personalizado (opcional)
-
-Para un formato más detallado, puedes añadir en `/etc/nginx/nginx.conf` dentro del bloque `http`:
-
-```nginx
-log_format weather_detailed '$remote_addr - $remote_user [$time_local] '
-                           '"$request" $status $body_bytes_sent '
-                           '"$http_referer" "$http_user_agent" '
-                           'rt=$request_time uct="$upstream_connect_time" '
-                           'uht="$upstream_header_time" urt="$upstream_response_time"';
-```
-
-Y luego en tu configuración del server:
-
-```nginx
-access_log /var/log/nginx/weather-api-access.log weather_detailed;
-```
-
-#### Rotación automática de logs
-
-Nginx incluye rotación de logs por defecto. Verifica la configuración en:
-
-```bash
-cat /etc/logrotate.d/nginx
-```
-
-Contenido típico:
-```
-/var/log/nginx/*.log {
-    daily
-    missingok
-    rotate 14
-    compress
-    delaycompress
-    notifempty
-    create 0640 www-data adm
-    sharedscripts
-    postrotate
-        if [ -f /var/run/nginx.pid ]; then
-            kill -USR1 `cat /var/run/nginx.pid`
-        fi
-    endscript
-}
-```
-
-#### Monitorización en tiempo real
-
-Para ver todas las peticiones en tiempo real con colores:
-
-```bash
-# Instalar goaccess (opcional, herramienta de análisis)
-sudo apt install goaccess
-
-# Análisis en tiempo real
-sudo goaccess /var/log/nginx/weather-api-access.log --log-format=COMBINED
-```
-
-#### Permisos de logs
-
-Si tienes problemas de permisos para leer los logs:
-
-```bash
-# Añadir tu usuario al grupo adm
-sudo usermod -aG adm $USER
-
-# Cerrar sesión y volver a entrar, o ejecutar:
-newgrp adm
-```
-
-## �ind_gust`: Ráfaga de viento (km/h)
-- `wind_gust_max`: Ráfaga máxima (km/h)
-- `wind_direction`: Dirección del viento (°)
-- `solar_radiation`: Radiación solar (W/m²)
-- `uv_index`: Índice UV
-- `rain_event`: Lluvia por evento (mm)
-- `rain_rate`: Intensidad de lluvia (mm/h)
-- `rain_daily`: Lluvia diaria (mm)
-- `rain_weekly`: Lluvia semanal (mm)
-- `rain_monthly`: Lluvia mensual (mm)
-- `rain_total`: Lluvia total (mm)
+- `humidity`: Humitat relativa (%)
+- `dew_point`: Punt de rosada (°C)
+- `wind_speed`: Velocitat del vent (km/h)
+- `wind_gust`: Ràfega de vent (km/h)
+- `wind_gust_max`: Ràfega màxima (km/h)
+- `wind_direction`: Direcció del vent (°)
+- `solar_radiation`: Radiació solar (W/m²)
+- `uv_index`: Índex UV
+- `rain_event`: Pluja per esdeveniment (mm)
+- `rain_rate`: Intensitat de pluja (mm/h)
+- `rain_daily`: Pluja diària (mm)
+- `rain_weekly`: Pluja setmanal (mm)
+- `rain_monthly`: Pluja mensual (mm)
+- `rain_total`: Pluja total (mm)
 - `created_at`: Timestamp (auto)
 
-## 🔄 Flujo de datos
+## 🔄 Flux de dades
 
-1. **Collector** consulta la estación GW2000 cada 60 segundos
-2. **Collector** procesa y almacena los datos en Supabase
-3. **Server** expone los datos mediante una API REST
-4. **Frontend** consume la API y muestra los datos al usuario
+1. **Collector** consulta l'estació GW2000 cada 60 segons
+2. **Collector** processa i desa les dades a Supabase
+3. **Server** exposa les dades mitjançant una API REST
+4. **Frontend** consumeix l'API i mostra les dades a l'usuari
 
-## 🐛 Troubleshooting
+#### Recuperar l'esquema de la BBDD
 
-### El collector no puede conectar con la estación
+1. Ves al **Dashboard de Supabase**
+2. **Table Editor** → Selecciona la taula `weather`
+3. Fes clic a **⋮** (tres punts) → **Copy SQL**
+4. Això et donarà el `CREATE TABLE` statement
+
+### Esquema actual (referència)
+
+El fitxer [schema.sql](schema.sql) del projecte conté l'esquema de la taula `weather`.
+
+## �🐛 Troubleshooting
+
+### El collector no pot connectar amb l'estació
 
 ```bash
-# Conectarse a la Raspberry Pi
-ssh pi@raspberry-pi-ip
+# Connectar-se a la Raspberry Pi
+ssh pi@ip-raspberry-pi
 
-# Verificar que la estación es accesible desde la Raspberry Pi
+# Verificar que l'estació és accessible des de la Raspberry Pi
 ping 192.168.1.57
 
-# Probar endpoint manualmente
+# Provar endpoint manualment
 curl http://192.168.1.57/get_livedata_info
 
-# Verificar que el collector está ejecutándose
+# Verificar que el collector està executant-se
 pm2 status
 pm2 logs weather-collector
 ```
 
-### El server no responde
+### El server no respon
 
 ```bash
-# Verificar que el proceso está ejecutándose
+# Verificar que el procés està executant-se
 pm2 status
 
-# Ver logs de errores
+# Veure logs d'errors
 pm2 logs weather-api --err
 
-# Reiniciar el proceso
+# Reiniciar el procés
 pm2 restart weather-api
 
-# Verificar que el puerto 3000 está escuchando
+# Verificar que el port 3000 està escoltant
 sudo netstat -tulpn | grep 3000
 ```
 
-### CORS errors en el frontend
+### Errors de CORS al frontend
 
-Asegúrate de que el dominio del frontend está añadido en `server.js`:
+Assegura't que el domini del frontend està afegit a `server.js`:
 
 ```javascript
 fastify.register(require('@fastify/cors'), {
@@ -486,6 +420,6 @@ fastify.register(require('@fastify/cors'), {
 });
 ```
 
-## 📝 Licencia
+## 📝 Llicència
 
 ISC
