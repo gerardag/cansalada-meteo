@@ -66,7 +66,7 @@ nano .env
 sudo npm install -g pm2
 
 # 9. Iniciar collector
-pm2 start collector.js --name "weather-collector"
+pm2 start collector.js --name "cansalada-meteo-collector"
 
 # 10. Configurar inici automàtic al reiniciar la Raspberry Pi
 pm2 startup
@@ -74,7 +74,7 @@ pm2 startup
 pm2 save
 
 # 11. Veure logs
-pm2 logs weather-collector
+pm2 logs cansalada-meteo-collector
 ```
 
 #### Verificar que funciona
@@ -84,7 +84,7 @@ pm2 logs weather-collector
 pm2 status
 
 # Veure logs en temps real
-pm2 logs weather-collector --lines 50
+pm2 logs cansalada-meteo-collector --lines 50
 
 # Verificar connectivitat amb l'estació
 ping 192.168.1.57
@@ -273,11 +273,11 @@ pm2 status
 
 # Veure logs en temps real
 pm2 logs weather-api
-pm2 logs weather-collector
+pm2 logs cansalada-meteo-collector
 
 # Reiniciar procés
 pm2 restart weather-api
-pm2 restart weather-collector
+pm2 restart cansalada-meteo-collector
 
 # Aturar procés
 pm2 stop weather-api
@@ -387,7 +387,7 @@ curl http://192.168.1.57/get_livedata_info
 
 # Verificar que el collector està executant-se
 pm2 status
-pm2 logs weather-collector
+pm2 logs cansalada-meteo-collector
 ```
 
 ### El server no respon
