@@ -19,5 +19,6 @@ CREATE TABLE public.weather (
   rain_monthly numeric,
   rain_total numeric,
   wind_direction numeric CHECK (wind_direction >= 0::numeric AND wind_direction <= 360::numeric),
+  vdo numeric,
   CONSTRAINT weather_pkey PRIMARY KEY (id)
 );

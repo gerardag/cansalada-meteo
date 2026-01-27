@@ -21,6 +21,7 @@ const ID_MAP = {
 	"0x15": "solar_radiation",
 	"0x17": "uv_index",
 	"0x6D": "wind_direction",
+	"5": "vdo",
 };
 
 const RAIN_ID_MAP = {
