@@ -82,5 +82,6 @@ fastify.get("/api/history", async (request, reply) => {
 	return { data };
 });
 
-fastify.listen({ port: 3000, host: "0.0.0.0" });
+// Només local: hi arriba Nginx (meteo-api.cnsld.cc), el port 3000 no s'exposa a internet
+fastify.listen({ port: 3000, host: "127.0.0.1" });
 

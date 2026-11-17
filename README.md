@@ -167,7 +167,7 @@ server {
     error_log /var/log/nginx/weather-api-error.log;
 
     location /api {
-        proxy_pass http://localhost:3000;
+        proxy_pass http://127.0.0.1:3000;
         proxy_http_version 1.1;
         proxy_set_header Upgrade $http_upgrade;
         proxy_set_header Connection 'upgrade';
@@ -208,7 +208,7 @@ Afegeix aquests registres a Cloudflare:
 ```
 Tipus   Nom     Contingut                      Proxy
 CNAME   meteo   cansalada-meteo.netlify.app    ✅ Proxied
-A       api     85.117.241.102                 ❌ Proxied
+A       meteo-api 85.117.241.101               ❌ Proxied
 ```
 
 ## 🔌 Endpoints de l'API
@@ -402,8 +402,8 @@ pm2 logs weather-api --err
 # Reiniciar el procés
 pm2 restart weather-api
 
-# Verificar que el port 3000 està escoltant
-sudo netstat -tulpn | grep 3000
+# Verificar que el port 3000 està escoltant (només a 127.0.0.1: des de fora no s'hi ha de poder arribar)
+sudo ss -tlnp | grep 3000
 ```
 
 ### Errors de CORS al frontend
