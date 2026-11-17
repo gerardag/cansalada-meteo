@@ -408,7 +408,7 @@ sudo ss -tlnp | grep 3000
 
 ### Errors de CORS al frontend
 
-Assegura't que el domini del frontend està afegit a `server.js`:
+L'API no té CORS (des del 2026-11-17): el frontend demana les dades des del servidor, no des del navegador, i no li cal. Si algun dia el navegador ha de cridar l'API directament, cal instal·lar `@fastify/cors` (`npm install @fastify/cors`, també al servidor) i afegir a `server.js`:
 
 ```javascript
 fastify.register(require('@fastify/cors'), {
