@@ -98,8 +98,9 @@ El servidor API es desplega en un servidor Debian amb accés públic.
 #### Requisits
 
 - Node.js 18+
-- PM2
-- Nginx (opcional, recomanat)
+- Nginx
+
+L'API l'engega systemd (sense PM2): el VPS té poca RAM i PM2 hi ocupava uns 40 MB.
 
 #### Instal·lació a Debian
 
@@ -108,22 +109,19 @@ El servidor API es desplega en un servidor Debian amb accés públic.
 curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
 sudo apt install -y nodejs
 
-# 2. Instal·lar PM2
-sudo npm install -g pm2
-
-# 3. Crear directori del projecte
+# 2. Crear directori del projecte
 sudo mkdir -p /var/www/cansalada-meteo
 cd /var/www/cansalada-meteo
 
-# 4. Clonar o copiar fitxers del projecte
+# 3. Clonar o copiar fitxers del projecte
 # git clone el-teu-repo.git .
 # O amb scp:
 # scp -r server.js package.json .env usuari@servidor:/var/www/cansalada-meteo/
 
-# 5. Instal·lar dependències
+# 4. Instal·lar dependències
 npm install
 
-# 6. Configurar variables d'entorn
+# 5. Configurar variables d'entorn
 nano .env
 ```
 
@@ -133,17 +131,34 @@ SUPABASE_URL=
 SUPABASE_ANON_KEY=
 ```
 
+Crear el servei `/etc/systemd/system/meteo-api.service`:
+```ini
+[Unit]
+Description=API de Can Salada Meteo (meteo-api.cnsld.cc)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=debian
+WorkingDirectory=/var/www/cansalada-meteo
+ExecStart=/usr/bin/node server.js
+Restart=always
+RestartSec=5
+# Si s'acaba la memòria, que el sistema mati abans qualsevol altra cosa que l'API
+OOMScoreAdjust=-500
+
+[Install]
+WantedBy=multi-user.target
+```
+
 ```bash
-# 7. Iniciar servidor amb PM2
-pm2 start server.js --name "weather-api"
+# 6. Engegar-lo i que arrenqui sol
+sudo systemctl daemon-reload
+sudo systemctl enable --now meteo-api
 
-# 8. Configurar inici automàtic
-pm2 startup systemd
-pm2 save
-
-# 9. Veure estat i logs
-pm2 status
-pm2 logs weather-api
+# 7. Veure estat i logs
+systemctl status meteo-api
+journalctl -u meteo-api -f
 ```
 
 #### Configurar Nginx (Recomanat)
@@ -265,28 +280,22 @@ Històric de les últimes 24 hores.
 
 ## 🛠️ Comandes útils
 
-### PM2
+### API (servidor, systemd)
 
 ```bash
-# Veure estat de tots els processos
+systemctl status meteo-api
+journalctl -u meteo-api -f
+sudo systemctl restart meteo-api
+sudo systemctl stop meteo-api
+```
+
+### Collector (Raspberry Pi, PM2)
+
+```bash
 pm2 status
-
-# Veure logs en temps real
-pm2 logs weather-api
 pm2 logs cansalada-meteo-collector
-
-# Reiniciar procés
-pm2 restart weather-api
 pm2 restart cansalada-meteo-collector
-
-# Aturar procés
-pm2 stop weather-api
-
-# Monitor de recursos
 pm2 monit
-
-# Eliminar procés
-pm2 delete weather-api
 ```
 
 ### Nginx
@@ -393,14 +402,14 @@ pm2 logs cansalada-meteo-collector
 ### El server no respon
 
 ```bash
-# Verificar que el procés està executant-se
-pm2 status
+# Verificar que el servei està executant-se
+systemctl status meteo-api
 
 # Veure logs d'errors
-pm2 logs weather-api --err
+journalctl -u meteo-api -p err
 
-# Reiniciar el procés
-pm2 restart weather-api
+# Reiniciar el servei
+sudo systemctl restart meteo-api
 
 # Verificar que el port 3000 està escoltant (només a 127.0.0.1: des de fora no s'hi ha de poder arribar)
 sudo ss -tlnp | grep 3000
